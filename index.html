@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFCS Timetable Planner Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --bg-gradient: linear-gradient(135deg, #f6f8fd 0%, #eef2f9 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            margin: 0;
+            padding: 40px 20px;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #111827;
+            font-weight: 600;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+            letter-spacing: -0.5px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #374151;
+            font-weight: 500;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Controls / Sidebar */
+        .controls {
+            height: fit-content;
+        }
+
+        .course-select-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .course-select-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #4b5563;
+        }
+
+        .course-code {
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background-color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px top 50%;
+            background-size: 10px auto;
+        }
+
+        select:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+        }
+
+        .error-msg {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 6px;
+            display: none;
+            font-weight: 500;
+            padding-left: 5px;
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            border-color: #dc2626 !important;
+        }
+
+        .btn-reset {
+            width: 100%;
+            padding: 14px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-reset:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Timetable View */
+        .timetable-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+            margin-bottom: 0;
+        }
+
+        th {
+            background: #374151;
+            color: white;
+            padding: 15px 10px;
+            font-weight: 500;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            height: 80px;
+            width: 120px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #9ca3af;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        td.occupied {
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        td.occupied:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        /* Summary Table */
+        .summary-section {
+            margin-top: 30px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #summaryTable {
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        #summaryTable th {
+            background: var(--primary);
+            border-radius: 0;
+        }
+
+        #summaryTable th:first-child { border-radius: 10px 0 0 0; }
+        #summaryTable th:last-child { border-radius: 0 10px 0 0; }
+
+        #summaryTable td {
+            height: auto;
+            padding: 15px;
+            background: white;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            border-radius: 0;
+        }
+
+        #summaryTable tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+        #summaryTable tr:last-child td:last-child { border-radius: 0 0 10px 0; }
+
+        #summaryTable tr:hover td {
+            background-color: #f9fafb;
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .controls {
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Subject Colors - Pastels */
+        .color-PLA1006 { background-color: #ffcdd2; border-left: 4px solid #ef5350; }
+        .color-MAT3002 { background-color: #fff9c4; border-left: 4px solid #ffee58; }
+        .color-CDS3005 { background-color: #e1bee7; border-left: 4px solid #ab47bc; }
+        .color-CSE3016 { background-color: #c8e6c9; border-left: 4px solid #66bb6a; }
+        .color-CSE3006 { background-color: #b3e5fc; border-left: 4px solid #29b6f6; }
+        .color-CSE3012 { background-color: #d1c4e9; border-left: 4px solid #7e57c2; }
+        .color-CSE3009 { background-color: #ffccbc; border-left: 4px solid #ff7043; }
+        .color-CSE4019 { background-color: #b2dfdb; border-left: 4px solid #26a69a; }
+
+    </style>
+</head>
+<body>
+
+    <h1>✨ FFCS Timetable Planner</h1>
+
+    <div class="container">
+        <div class="card controls" id="controls">
+            <h3>Select Courses</h3>
+            <div id="selectors">
+                </div>
+            <button onclick="resetAll()" class="btn-reset">Reset All Courses</button>
+        </div>
+
+        <div class="card timetable-wrapper">
+            <h3>Timetable View</h3>
+            <table id="timetable">
+                <thead>
+                    <tr>
+                        <th>Day/Time</th>
+                        <th>8.30-10.00</th>
+                        <th>10.05-11.35</th>
+                        <th>11.40-13.10</th>
+                        <th>13.15-14.45</th>
+                        <th>14.50-16.20</th>
+                        <th>16.25-17.55</th>
+                        <th>18.00-19.30</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Mon</th>
+                        <td id="A11">A11</td><td id="B11">B11</td><td id="C11">C11</td><td id="A21">A21</td><td id="A14">A14</td><td id="B21">B21</td><td id="C21">C21</td>
+                    </tr>
+                    <tr>
+                        <th>Tue</th>
+                        <td id="D11">D11</td><td id="E11">E11</td><td id="F11">F11</td><td id="D21">D21</td><td id="E14">E14</td><td id="E21">E21</td><td id="F21">F21</td>
+                    </tr>
+                    <tr>
+                        <th>Wed</th>
+                        <td id="A12">A12</td><td id="B12">B12</td><td id="C12">C12</td><td id="A22">A22</td><td id="B14">B14</td><td id="B22">B22</td><td id="A24">A24</td>
+                    </tr>
+                    <tr>
+                        <th>Thu</th>
+                        <td id="D12">D12</td><td id="E12">E12</td><td id="F12">F12</td><td id="D22">D22</td><td id="F14">F14</td><td id="E22">E22</td><td id="F22">F22</td>
+                    </tr>
+                    <tr>
+                        <th>Fri</th>
+                        <td id="A13">A13</td><td id="B13">B13</td><td id="C13">C13</td><td id="A23">A23</td><td id="C14">C14</td><td id="B23">B23</td><td id="B24">B24</td>
+                    </tr>
+                    <tr>
+                        <th>Sat</th>
+                        <td id="D13">D13</td><td id="E13">E13</td><td id="F13">F13</td><td id="D23">D23</td><td id="D14">D14</td><td id="D24">D24</td><td id="E23">E23</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card summary-section">
+        <h3>Selected Courses Summary</h3>
+        <table id="summaryTable">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Course Title</th>
+                    <th>Faculty</th>
+                    <th>Slot</th>
+                    <th>Venue</th>
+                </tr>
+            </thead>
+            <tbody id="summaryBody">
+                <tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No courses selected yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+<script>
+    // DATA EXTRACTED FROM IMAGES
+    const courses = [
+        {
+            code: "PLA1006", title: "Lateral Thinking", color: "color-PLA1006",
+            options: [
+                { id: "p1", faculty: "PAT TRAINER", slot: "A11", venue: "AB02-216" },
+                { id: "p2", faculty: "PAT TRAINER", slot: "A12", venue: "AB02-216" },
+                { id: "p3", faculty: "PAT TRAINER", slot: "A13", venue: "AB02-216" },
+                { id: "p4", faculty: "SMART TRAINER 1", slot: "A14", venue: "AB02-216" },
+                { id: "p5", faculty: "SMART TRAINER 2", slot: "A21", venue: "AB02-217" },
+                { id: "p6", faculty: "SMART TRAINER 1", slot: "A23", venue: "AB02-216" },
+                { id: "p7", faculty: "SMART TRAINER 2", slot: "A24", venue: "AB02-217" },
+                { id: "p8", faculty: "PAT TRAINER", slot: "B11", venue: "AB02-216" },
+                { id: "p9", faculty: "PAT TRAINER", slot: "B12", venue: "AB02-216" },
+                { id: "p10", faculty: "PAT TRAINER", slot: "B13", venue: "AB02-216" },
+                { id: "p11", faculty: "SMART TRAINER 1", slot: "B21", venue: "AB02-216" },
+                { id: "p12", faculty: "SMART TRAINER 1", slot: "B22", venue: "AB02-216" },
+                { id: "p13", faculty: "SMART TRAINER 2", slot: "B23", venue: "AB02-217" },
+                { id: "p14", faculty: "SMART TRAINER 1", slot: "B24", venue: "AB02-216" },
+                { id: "p15", faculty: "PAT TRAINER", slot: "C11", venue: "AB02-216" },
+                { id: "p16", faculty: "PAT TRAINER", slot: "C12", venue: "AB02-216" },
+                { id: "p17", faculty: "PAT TRAINER", slot: "C13", venue: "AB02-216" },
+                { id: "p18", faculty: "SMART TRAINER 1", slot: "C21", venue: "AB02-216" },
+                { id: "p19", faculty: "PAT TRAINER", slot: "D11", venue: "AB02-216" },
+                { id: "p20", faculty: "PAT TRAINER", slot: "D12", venue: "AB02-216" },
+                { id: "p21", faculty: "PAT TRAINER", slot: "E11", venue: "AB02-216" },
+                { id: "p22", faculty: "PAT TRAINER", slot: "E12", venue: "AB02-216" },
+                { id: "p23", faculty: "SMART TRAINER 1", slot: "E14", venue: "AB02-216" },
+                { id: "p24", faculty: "SMART TRAINER 2", slot: "E21", venue: "AB02-217" },
+                { id: "p25", faculty: "SMART TRAINER 2", slot: "E22", venue: "AB02-217" },
+                { id: "p26", faculty: "PAT TRAINER", slot: "F11", venue: "AB02-216" },
+                { id: "p27", faculty: "PAT TRAINER", slot: "F12", venue: "AB02-216" },
+                { id: "p28", faculty: "SMART TRAINER 1", slot: "F21", venue: "AB02-216" },
+                { id: "p29", faculty: "SMART TRAINER 2", slot: "F22", venue: "AB02-217" }
+            ]
+        },
+        {
+            code: "MAT3002", title: "Applied Linear Algebra", color: "color-MAT3002",
+            options: [
+                { id: "m1", faculty: "DIP", slot: "A11+A12", venue: "AB-117" },
+                { id: "m2", faculty: "NEHA RAMESH GIRHE", slot: "A11+A12", venue: "AB-218" },
+                { id: "m3", faculty: "DONDU HARISH BABU", slot: "A21+A22", venue: "AB-127" },
+                { id: "m4", faculty: "MOSTAID AHMED", slot: "A21+A22", venue: "AB-218" },
+                { id: "m5", faculty: "BENEVATHO JAISON A", slot: "A21+A22", venue: "AB-102" },
+                { id: "m6", faculty: "AKSHARA MAKRARIYA", slot: "B11+B12", venue: "AB-102" },
+                { id: "m7", faculty: "MOSTAID AHMED", slot: "B11+B12", venue: "AB-228" },
+                { id: "m8", faculty: "PRASHANT KUMAR PANDEY", slot: "B11+B12", venue: "AB-127" },
+                { id: "m9", faculty: "RANJITHA", slot: "B14+B23", venue: "AB-217" },
+                { id: "m10", faculty: "DIP", slot: "B14+D21", venue: "AB-117" },
+                { id: "m11", faculty: "ASHISH", slot: "B21+E14", venue: "AB-127" },
+                { id: "m12", faculty: "DONDU HARISH BABU", slot: "B23+D21", venue: "AB-127" },
+                { id: "m13", faculty: "JUHI KESARWANI", slot: "C11+C12", venue: "AB-126" },
+                { id: "m14", faculty: "FEEROZ", slot: "C11+C12", venue: "AB-115" },
+                { id: "m15", faculty: "DILEEP KUMAR", slot: "C11+C12", venue: "AB-114" },
+                { id: "m16", faculty: "PALAS MANDAL", slot: "D11+D12", venue: "AB-217" },
+                { id: "m17", faculty: "MOSTAID AHMED", slot: "D11+D12", venue: "AB-218" },
+                { id: "m18", faculty: "JUHI KESARWANI", slot: "E11+E12", venue: "AB-127" },
+                { id: "m19", faculty: "PALAS MANDAL", slot: "E11+E12", venue: "AB-218" },
+                { id: "m20", faculty: "FEEROZ", slot: "E14+E22", venue: "AB-126" },
+                { id: "m21", faculty: "DILEEP KUMAR", slot: "E14+E22", venue: "AB-117" },
+                { id: "m22", faculty: "ASHISH", slot: "F11+F12", venue: "AB-127" },
+                { id: "m23", faculty: "PRASHANT KUMAR PANDEY", slot: "F11+F12", venue: "AB-114" },
+                { id: "m24", faculty: "MOSTAID AHMED", slot: "F11+F12", venue: "AB-217" }
+            ]
+        },
+        {
+            code: "CDS3005", title: "Foundations of Data Science", color: "color-CDS3005",
+            options: [
+                { id: "ds1", faculty: "MONICA", slot: "A14+D11", venue: "AR-203" },
+                { id: "ds2", faculty: "ABHINAV KUMAR", slot: "A24+E21", venue: "AR-103" },
+                { id: "ds3", faculty: "MOHD RAFI LONE", slot: "A24+E21", venue: "AB02-316" },
+                { id: "ds4", faculty: "KANNAIYA RAJA N", slot: "A24+E21", venue: "AB02-330" },
+                { id: "ds5", faculty: "VELMURUGAN L", slot: "A24+E21", venue: "AB02-311" },
+                { id: "ds6", faculty: "ASHFAQ AHMAD NAJAR", slot: "A24+E21", venue: "AB02-414" },
+                { id: "ds7", faculty: "SHAGUN SHARMA", slot: "B11+B12", venue: "AB02-409" },
+                { id: "ds8", faculty: "VIPIN", slot: "B14+B23", venue: "AB02-316" },
+                { id: "ds9", faculty: "DAOOD SALEEM", slot: "B14+D21", venue: "LC-207" },
+                { id: "ds10", faculty: "VIVEK", slot: "B21+E14", venue: "AB02-408" },
+                { id: "ds11", faculty: "MOHD RAFI LONE", slot: "B22+B24", venue: "AB02-401" },
+                { id: "ds12", faculty: "ASHFAQ AHMAD NAJAR", slot: "B22+B24", venue: "AB02-402" },
+                { id: "ds13", faculty: "ABHINAV KUMAR", slot: "B23+E22", venue: "AR-103" },
+                { id: "ds14", faculty: "MOHAMMAD SULTAN", slot: "C11+C12", venue: "LC-207" },
+                { id: "ds15", faculty: "DAOOD SALEEM", slot: "D11+D12", venue: "LC-207" },
+                { id: "ds16", faculty: "SHAGUN SHARMA", slot: "D11+D12", venue: "AB02-311" },
+                { id: "ds17", faculty: "A.V.R MAYURI", slot: "F11+F12", venue: "AB02-429" },
+                { id: "ds18", faculty: "S. PERIYANAYAGI", slot: "F11+F12", venue: "AB02-316" },
+                { id: "ds19", faculty: "MANORMA CHOUHAN", slot: "F11+F12", venue: "AB02-301" },
+                { id: "ds20", faculty: "VIPIN", slot: "F11+F12", venue: "AB02-409" },
+                { id: "ds21", faculty: "VISHAL SINGH", slot: "F11+F12", venue: "AB02-428" }
+            ]
+        },
+        {
+            code: "CSE3016", title: "AWS Solution Architect", color: "color-CSE3016",
+            options: [
+                { id: "aws1", faculty: "ANAND MOTWANI", slot: "A11+A12+A13", venue: "AB02-127-Audi1" },
+                { id: "aws2", faculty: "A.V.R MAYURI", slot: "A11+A12+A13", venue: "AB02-429" },
+                { id: "aws3", faculty: "RAVI VERMA", slot: "A11+A12+A13", venue: "LC-207" },
+                { id: "aws4", faculty: "BHUPENDRA PANCHAL", slot: "A11+A12+A13", venue: "AB02-404" },
+                { id: "aws5", faculty: "ANTIMA JAIN", slot: "A11+A12+A13", venue: "AB02-325" },
+                { id: "aws6", faculty: "ANJU SHUKLA", slot: "A14+D11+D12", venue: "AB02-401" },
+                { id: "aws7", faculty: "ANTIMA JAIN", slot: "A14+D11+D12", venue: "AB02-429" },
+                { id: "aws8", faculty: "VIVEK", slot: "A21+A22+A23", venue: "AB02-403" },
+                { id: "aws9", faculty: "G. GANESAN", slot: "A24+E21+F22", venue: "LC-207" },
+                { id: "aws10", faculty: "VIVEK", slot: "A24+E21+F22", venue: "AB02-306" },
+                { id: "aws11", faculty: "JYOTI CHAUHAN", slot: "B11+B12+B13", venue: "LC-207" },
+                { id: "aws12", faculty: "ANJU SHUKLA", slot: "B11+B12+B13", venue: "AB02-401" },
+                { id: "aws13", faculty: "HARIHARASITARAMAN S", slot: "B21+E14+E22", venue: "AR-203" },
+                { id: "aws14", faculty: "RAMRAJ", slot: "B21+E14+E22", venue: "AB02-316" },
+                { id: "aws15", faculty: "G. GANESAN", slot: "B22+B24+F21", venue: "AR-002" },
+                { id: "aws16", faculty: "HARIHARASITARAMAN S", slot: "C11+C12+C13", venue: "AR-203" },
+                { id: "aws17", faculty: "RAVI VERMA", slot: "C11+C12+C13", venue: "LC-002" },
+                { id: "aws18", faculty: "BHUPENDRA PANCHAL", slot: "C11+C12+C13", venue: "AB02-414" },
+                { id: "aws19", faculty: "ANAND MOTWANI", slot: "C14+E11+E12", venue: "AB02-128-Audi2" },
+                { id: "aws20", faculty: "JYOTI CHAUHAN", slot: "C14+E11+E12", venue: "LC-207" },
+                { id: "aws21", faculty: "RAMRAJ", slot: "C21+F11+F12", venue: "AB02-402" }
+            ]
+        },
+        {
+            code: "CSE3006", title: "Computer Networks", color: "color-CSE3006",
+            options: [
+                { id: "cn1", faculty: "KAMLESH CHANDRAVANSHI", slot: "A11+A12+A13", venue: "AB-532" },
+                { id: "cn2", faculty: "JITENDRA PRATAP SINGH MATHUR", slot: "A11+A12+A13", venue: "AR-302" },
+                { id: "cn3", faculty: "GAURAV SONI", slot: "A14+D11+D12", venue: "AR-202" },
+                { id: "cn4", faculty: "ANKUR JAIN", slot: "A14+D11+D12", venue: "AB02-115" },
+                { id: "cn5", faculty: "AJAY SHARMA", slot: "A14+D11+D12", venue: "AR-303" },
+                { id: "cn6", faculty: "GAURAV SONI", slot: "A21+A22+A23", venue: "AR-202" },
+                { id: "cn7", faculty: "SHAHANA GAJALA QURESHI", slot: "A21+A22+A23", venue: "LC-104" },
+                { id: "cn8", faculty: "AJAY SHARMA", slot: "A21+A22+A23", venue: "AR-303" },
+                { id: "cn9", faculty: "KOMARASAMY G", slot: "A24+E21+F22", venue: "AB02-230" },
+                { id: "cn10", faculty: "SAJJAD AHMED", slot: "A24+E21+F22", venue: "AR-302" },
+                { id: "cn11", faculty: "VELMANI R", slot: "A24+E21+F22", venue: "AR-202" },
+                { id: "cn12", faculty: "SHAHANA GAJALA QURESHI", slot: "B11+B12+B13", venue: "AR-202" },
+                { id: "cn13", faculty: "ADARSH PATEL", slot: "B11+B12+B13", venue: "AB02-115" },
+                { id: "cn14", faculty: "VIJAY BIRCHHA", slot: "B11+B12+B13", venue: "AR-102" },
+                { id: "cn15", faculty: "KOMARASAMY G", slot: "B21+E14+E22", venue: "AB02-231" },
+                { id: "cn16", faculty: "PRATOSH KUMAR PAL", slot: "B21+E14+E22", venue: "AR-202" },
+                { id: "cn17", faculty: "PRATOSH KUMAR PAL", slot: "B22+B24+F21", venue: "AB-532" },
+                { id: "cn18", faculty: "SAJJAD AHMED", slot: "B22+B24+F21", venue: "AR-303" },
+                { id: "cn19", faculty: "VELMANI R", slot: "B22+B24+F21", venue: "AR-302" },
+                { id: "cn20", faculty: "JITENDRA PRATAP SINGH MATHUR", slot: "C11+C12+C13", venue: "AR-302" },
+                { id: "cn21", faculty: "MD AJAZ RAB", slot: "C14+E11+E12", venue: "AB02-231" },
+                { id: "cn22", faculty: "KAMLESH CHANDRAVANSHI", slot: "C14+E11+E12", venue: "LC-104" },
+                { id: "cn23", faculty: "ANKUR JAIN", slot: "C14+E11+E12", venue: "AB02-401" },
+                { id: "cn24", faculty: "ADARSH PATEL", slot: "C14+E11+E12", venue: "AB02-115" }
+            ]
+        },
+        {
+            code: "CSE3012", title: "Mobile Application Development", color: "color-CSE3012",
+            options: [
+                { id: "mad1", faculty: "JALALUDDIN KHAN", slot: "A11+A12", venue: "AB02-409" },
+                { id: "mad2", faculty: "SHAGUN SHARMA", slot: "A21+A22", venue: "AB02-306" },
+                { id: "mad3", faculty: "SATYABRATA NATH", slot: "A24+E21", venue: "AB02-409" },
+                { id: "mad4", faculty: "DAOOD SALEEM", slot: "B11+B12", venue: "AR-303" },
+                { id: "mad5", faculty: "LOKESH", slot: "B11+B12", venue: "AB02-408" },
+                { id: "mad6", faculty: "G.PRABU KANNA", slot: "B21+E14", venue: "AR-103" },
+                { id: "mad7", faculty: "SHWETA SAXENA", slot: "B21+E14", venue: "AB02-330" },
+                { id: "mad8", faculty: "G.PRABU KANNA", slot: "B22+B24", venue: "AR-103" },
+                { id: "mad9", faculty: "SATYABRATA NATH", slot: "B22+B24", venue: "AB02-404" },
+                { id: "mad10", faculty: "T. VENKATESWARA RAO", slot: "B22+B24", venue: "AB02-403" },
+                { id: "mad11", faculty: "JALALUDDIN KHAN", slot: "C11+C12", venue: "AB02-408" },
+                { id: "mad12", faculty: "MOSES DIAN S", slot: "C11+C12", venue: "AB02-409" },
+                { id: "mad13", faculty: "PRAMOD KUMAR BHATT", slot: "C11+C12", venue: "AR-103" }
+            ]
+        },
+        {
+            code: "CSE3009", title: "Parallel and Distributed Computing", color: "color-CSE3009",
+            options: [
+                { id: "pdc1", faculty: "MOHD. ISHRAT", slot: "A14+D11+D12", venue: "AB02-408" },
+                { id: "pdc2", faculty: "SANAT JAIN", slot: "A21+A22+A23", venue: "AB02-316" },
+                { id: "pdc3", faculty: "M. SURESH", slot: "A24+E21+F22", venue: "AB02-429" },
+                { id: "pdc4", faculty: "SIVABALAN", slot: "A24+E21+F22", venue: "AB02-401" },
+                { id: "pdc5", faculty: "E. NIRMALA", slot: "B11+B12+B13", venue: "AB02-429" },
+                { id: "pdc6", faculty: "SANAT JAIN", slot: "B11+B12+B13", venue: "AB02-403" },
+                { id: "pdc7", faculty: "SHAFIUL ALOM", slot: "B11+B12+B13", venue: "AB02-316" },
+                { id: "pdc8", faculty: "SHAFIUL ALOM", slot: "B14+B23+D21", venue: "AB02-306" },
+                { id: "pdc9", faculty: "M. SURESH", slot: "B22+B24+F21", venue: "AB02-429" },
+                { id: "pdc10", faculty: "SIVABALAN", slot: "B22+B24+F21", venue: "AB02-325" },
+                { id: "pdc11", faculty: "VIPIN", slot: "B22+B24+F21", venue: "AB02-414" },
+                { id: "pdc12", faculty: "SIVABALAN", slot: "C11+C12+C13", venue: "AB02-403" },
+                { id: "pdc13", faculty: "MOHD. ISHRAT", slot: "C14+E11+E12", venue: "AB02-325" }
+            ]
+        },
+        {
+            code: "CSE4019", title: "Advanced Java Programming", color: "color-CSE4019",
+            options: [
+                { id: "aj1", faculty: "VISHAL SINGH", slot: "A11+A12", venue: "AB02-311" },
+                { id: "aj2", faculty: "J. SHARMILA JOSEPH", slot: "A11+A12", venue: "AB02-414" },
+                { id: "aj3", faculty: "RAM", slot: "A22+A23", venue: "AR-002" },
+                { id: "aj4", faculty: "DEVARAJU S", slot: "A24+E21", venue: "AB02-127-Audi1" },
+                { id: "aj5", faculty: "SANDEEP MONGA", slot: "B11+B12", venue: "AR-203" },
+                { id: "aj6", faculty: "PRISCILLA DINKAR MOYYA", slot: "B14+B23", venue: "AB02-230" },
+                { id: "aj7", faculty: "LOKESH", slot: "B14+B23", venue: "AB02-311" },
+                { id: "aj8", faculty: "PRAVEEN KUMAR TYAGI", slot: "B14+D21", venue: "AB02-404" },
+                { id: "aj9", faculty: "MOHD. ISHRAT", slot: "B14+D21", venue: "AB02-401" },
+                { id: "aj10", faculty: "VANDANA SHAKYA", slot: "B14+D21", venue: "AB02-423" },
+                { id: "aj11", faculty: "DEVARAJU S", slot: "B21+E14", venue: "AB02-401" },
+                { id: "aj12", faculty: "SANAT JAIN", slot: "B21+E14", venue: "AB02-325" },
+                { id: "aj13", faculty: "G.R. HEMALAKSHMI", slot: "B21+E14", venue: "AB02-306" },
+                { id: "aj14", faculty: "J. MANIKANDAN", slot: "B22+B24", venue: "LC-207" },
+                { id: "aj15", faculty: "PRAVEEN KUMAR TYAGI", slot: "B24+F21", venue: "AB02-306" },
+                { id: "aj16", faculty: "PRISCILLA DINKAR MOYYA", slot: "C11+C12", venue: "AB02-311" },
+                { id: "aj17", faculty: "VISHAL SINGH", slot: "D11+D12", venue: "AB02-127-Audi1" },
+                { id: "aj18", faculty: "VANDANA SHAKYA", slot: "D11+D12", venue: "AB02-409" },
+                { id: "aj19", faculty: "J. SHARMILA JOSEPH", slot: "D11+D12", venue: "AB02-414" },
+                { id: "aj20", faculty: "RIZWAN UR RAHMAN", slot: "E11+E12", venue: "AR-103" },
+                { id: "aj21", faculty: "MURUGESWARI K", slot: "E11+E12", venue: "AB02-429" },
+                { id: "aj22", faculty: "J. SHARMILA JOSEPH", slot: "F11+F12", venue: "AB02-414" },
+                { id: "aj23", faculty: "LOKESH", slot: "F11+F12", venue: "AB02-408" },
+                { id: "aj24", faculty: "SANDEEP MONGA", slot: "F11+F12", venue: "AR-203" }
+            ]
+        }
+    ];
+
+    let selections = {};
+    let occupiedSlots = {};
+
+    function init() {
+        const container = document.getElementById('selectors');
+        
+        courses.forEach(course => {
+            const div = document.createElement('div');
+            div.className = 'course-select-group';
+            div.innerHTML = `
+                <label>${course.title}<span class="course-code">(${course.code})</span></label>
+                <select id="select-${course.code}" onchange="handleSelection('${course.code}', this.value)">
+                    <option value="">-- Select Faculty / Slot --</option>
+                    ${course.options.map(opt => `<option value="${opt.id}">${opt.faculty} | ${opt.slot} | ${opt.venue}</option>`).join('')}
+                </select>
+                <div id="error-${course.code}" class="error-msg">Clash detected!</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function handleSelection(code, optionId) {
+        const errorDiv = document.getElementById(`error-${code}`);
+        const selectBox = document.getElementById(`select-${code}`);
+        
+        // Remove shake class if exists to restart anim later if needed
+        selectBox.classList.remove('shake');
+
+        if (!optionId) {
+            removeSelection(code);
+            errorDiv.style.display = 'none';
+            selectBox.style.borderColor = "#e5e7eb";
+            return;
+        }
+
+        const course = courses.find(c => c.code === code);
+        const option = course.options.find(o => o.id === optionId);
+        const newSlots = option.slot.split('+');
+
+        // Check Conflicts
+        let conflict = false;
+        let conflictingCourse = "";
+
+        newSlots.forEach(slot => {
+            if (occupiedSlots[slot] && occupiedSlots[slot] !== code) {
+                conflict = true;
+                conflictingCourse = occupiedSlots[slot];
+            }
+        });
+
+        if (conflict) {
+            selectBox.value = selections[code] || ""; 
+            errorDiv.innerText = `⚠️ Clash with ${conflictingCourse} at slot ${option.slot}!`;
+            errorDiv.style.display = 'block';
+            selectBox.style.borderColor = "#dc2626";
+            // Trigger Shake Animation
+            void selectBox.offsetWidth; // trigger reflow
+            selectBox.classList.add('shake');
+            return;
+        }
+
+        errorDiv.style.display = 'none';
+        selectBox.style.borderColor = "var(--primary)";
+
+        removeSelection(code);
+
+        selections[code] = optionId;
+        newSlots.forEach(slot => {
+            occupiedSlots[slot] = code;
+            const cell = document.getElementById(slot);
+            if (cell) {
+                // Remove old animations first
+                cell.style.animation = 'none';
+                cell.offsetHeight; /* trigger reflow */
+                cell.style.animation = null; 
+                
+                cell.className = ''; // reset classes
+                cell.classList.add(course.color);
+                cell.classList.add('occupied');
+                cell.innerHTML = `
+                    <div style="font-size:14px; margin-bottom:2px;">${slot}</div>
+                    <div style="font-weight:bold;">${code}</div>
+                    <div style="font-size:10px; opacity:0.8;">${option.venue}</div>
+                `;
+            }
+        });
+
+        updateSummary();
+    }
+
+    function removeSelection(code) {
+        if (!selections[code]) return;
+
+        const oldOptionId = selections[code];
+        const course = courses.find(c => c.code === code);
+        const oldOption = course.options.find(o => o.id === oldOptionId);
+        const oldSlots = oldOption.slot.split('+');
+
+        oldSlots.forEach(slot => {
+            delete occupiedSlots[slot];
+            const cell = document.getElementById(slot);
+            if (cell) {
+                cell.className = '';
+                cell.innerHTML = slot;
+            }
+        });
+
+        delete selections[code];
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const tbody = document.getElementById('summaryBody');
+        tbody.innerHTML = '';
+
+        const activeCourses = Object.keys(selections);
+        
+        if (activeCourses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">No courses selected yet.</td></tr>';
+            return;
+        }
+
+        courses.forEach(course => {
+            if (selections[course.code]) {
+                const optId = selections[course.code];
+                const opt = course.options.find(o => o.id === optId);
+                
+                const tr = document.createElement('tr');
+                tr.style.animation = "fadeInDown 0.3s ease-out";
+                tr.innerHTML = `
+                    <td style="font-weight:600; color:#374151;">${course.code}</td>
+                    <td>${course.title}</td>
+                    <td>${opt.faculty}</td>
+                    <td><span style="background:#e0e7ff; color:#4338ca; padding:2px 8px; border-radius:12px; font-size:0.85rem;">${opt.slot}</span></td>
+                    <td>${opt.venue}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+    }
+
+    function resetAll() {
+        courses.forEach(c => {
+            const select = document.getElementById(`select-${c.code}`);
+            select.value = "";
+            select.style.borderColor = "#e5e7eb";
+            removeSelection(c.code);
+            document.getElementById(`error-${c.code}`).style.display = 'none';
+        });
+    }
+
+    // Initialize
+    init();
+
+</script>
+
+</body>
+</html>
